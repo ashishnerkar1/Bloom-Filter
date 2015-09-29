@@ -5,11 +5,9 @@ import java.util.*;
 import java.security.*;
 import java.nio.charset.Charset;
 
-
 /*
- Implementation of Bloom Filter
+ Implementation of Bloom Filter in Java
  */
-
 
 public class BloomFilter <E> implements Serializable {
 	
@@ -20,21 +18,16 @@ public class BloomFilter <E> implements Serializable {
 	
 	static final Charset charset = Charset.forName("UTF-8"); // to store hash values as strings
 	private int m;  // size of Vector
-	
 	private static MessageDigest md;
 	
-	
 	static {
-		
 		try{
 			md  = MessageDigest.getInstance("MD5");
 		}
 		catch(NoSuchAlgorithmException e){
 			md = null;
 		}
-		
 	}
-	
 	
 	/*
 	 * Initialize members
@@ -44,7 +37,6 @@ public class BloomFilter <E> implements Serializable {
 	 */
 	
 	public BloomFilter(double bits,int n, int k) {
-		
 		this.k = k;
 		this.N = n;
 		this.setSize = (int)Math.ceil(bits * n);
@@ -63,11 +55,10 @@ public class BloomFilter <E> implements Serializable {
 	             (int)Math.ceil(-(Math.log(errorProbability) / Math.log(2)))); // k = ceil(-log_2(false prob))	
 	}
 	
-	
 	public BloomFilter(int bitSetSize, int NumberOElements) {
-        this(bitSetSize / (double)NumberOElements,
-        		NumberOElements,
-             (int) Math.round((bitSetSize / (double)NumberOElements) * Math.log(2.0)));
+        	this(bitSetSize / (double)NumberOElements,
+        	     NumberOElements,
+        	     (int) Math.round((bitSetSize / (double)NumberOElements) * Math.log(2.0)));
     }
 	
 	/*
@@ -76,58 +67,46 @@ public class BloomFilter <E> implements Serializable {
 	 * totalhashes based on number of hash functions
 	 */
 	
-	
 	public static int [] createHashValues (byte data[],int totalhashes) {
-		
 		int hashindexes[] = new int[totalhashes];
-		
-		
 		int k = 0;
 		byte salt = 0;
 		
 		while(k < totalhashes) {
-			
 			byte [] digest;
-			
 			md.update(salt);
 			salt++;
-	
 			digest = md.digest(data);
 			
-			 for (int i = 0; i < digest.length/4 && k < totalhashes; i++) {
-				 int index = 0;
-	                for (int j = (i*4); j < (i*4)+4; j++) {
-	                    index <<= 8;
-	                    index |= ((int) digest[j]) & 0xFF;
-	                }
-	             hashindexes[k] = index;
-	             k++;
+			for (int i = 0; i < digest.length/4 && k < totalhashes; i++) {
+				int index = 0;
+		                for (int j = (i*4); j < (i*4)+4; j++) {
+		                    index <<= 8;
+		                    index |= ((int) digest[j]) & 0xFF;
+		                }
+		        	hashindexes[k] = index;
+		             	k++;
 	         }			
 		}
 		return hashindexes;
 	}
 	
-
 	public int getNoOfHashFunctions(){
 		return k;
 	}
 
-	
 	public void clear(){
 		vector.clear();
 	}
 	
 	public void add(E element){
-		
 		 add(element.toString().getBytes());		
 	}
 	
 	public void add(byte bytes[]){
-			int indexes[] = createHashValues(bytes, k);	// hash the element through k hash functions
-		
+		int indexes[] = createHashValues(bytes, k);	// hash the element through k hash functions
 		for(int index: indexes){
-			
-			vector.set(Math.abs(index % setSize),true);		// set the bit at the index returned by hash function
+			vector.set(Math.abs(index % setSize),true);	// set the bit at each index returned by hash function
 		}
 	}
 	
@@ -136,9 +115,7 @@ public class BloomFilter <E> implements Serializable {
 	}
 	
 	public boolean contains(byte bytes[]){
-		
 		int indexes[] = createHashValues(bytes, k);
-		
 		for (int index : indexes){
 			if(!vector.get(Math.abs(index % setSize))){
 				return false;		// Element definitely not present in the Set
@@ -152,8 +129,6 @@ public class BloomFilter <E> implements Serializable {
 	}
 	
 	public void setBit(int index){
-		
 		vector.set(index);		
 	}
-	
 }
